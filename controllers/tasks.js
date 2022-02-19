@@ -33,12 +33,41 @@ const getTask = async (req, res) => {
   }
 }
 
-const updateTask = (req, res) => {
-  res.send("Update Task")
+const updateTask = async (req, res) => {
+  try {
+    const { id: taskID } = req.params
+
+    const task = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
+      new: true,
+      runValidators: true,
+    })
+
+    if (!task) {
+      return res.status(404).json({ message: `No task with id: ${taskID}` })
+    }
+
+    res.status(200).json({ task })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
 }
 
-const deleteTask = (req, res) => {
-  res.send("delete task")
+const deleteTask = async (req, res) => {
+  try {
+    const { id: taskID } = req.params
+    const foundTask = await Task.findOneAndDelete({ _id: taskID })
+    if (!foundTask) {
+      return res
+        .status(404)
+        .json({ message: `No task with id: ${taskID} was found.` })
+    }
+    res
+      .status(200)
+      .json({ message: `Successfully deleted task with id : ${taskID}` })
+  } catch (err) {
+    const { message } = err
+    return res.status(500).json({ message })
+  }
 }
 
 module.exports = { getAllTasks, createTask, getTask, updateTask, deleteTask }
